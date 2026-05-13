@@ -25,8 +25,11 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
         Url = _settings.Url;
         ApiKey = _settings.ApiKey;
         Model = _settings.Model;
+        ModelFilterText = _settings.Model;
         Models = new ObservableCollection<string>(_settings.Models);
+        FilteredModels = new ObservableCollection<string>();
         Temperature = _settings.Temperature;
+        RefreshFilteredModels();
 
         PropertyChanged += OnPropertyChanged;
         Models.CollectionChanged += OnModelsCollectionChanged;
@@ -59,6 +62,13 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
                 break;
             case nameof(Model):
                 _settings.Model = Model ?? string.Empty;
+                if (!_isUpdating && !string.IsNullOrWhiteSpace(Model) && ModelFilterText != Model)
+                    ModelFilterText = Model ?? string.Empty;
+                break;
+            case nameof(ModelFilterText):
+                if (!_isUpdating)
+                    _settings.Model = ModelFilterText;
+                RefreshFilteredModels();
                 break;
             case nameof(Temperature):
                 // 舍入到一位小数，避免浮点精度问题
@@ -76,19 +86,27 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial string Url { get; set; }
     [ObservableProperty] public partial string ApiKey { get; set; }
     [ObservableProperty] public partial string? Model { get; set; }
+    [ObservableProperty] public partial string ModelFilterText { get; set; } = string.Empty;
     [ObservableProperty] public partial ObservableCollection<string> Models { get; set; }
+    [ObservableProperty] public partial ObservableCollection<string> FilteredModels { get; set; }
     [ObservableProperty] public partial double Temperature { get; set; }
 
     [RelayCommand]
     private void AddModel(string model)
     {
-        if (_isUpdating || string.IsNullOrWhiteSpace(model) || Models.Contains(model))
+        if (_isUpdating || string.IsNullOrWhiteSpace(model))
             return;
+
+        model = model.Trim();
 
         using var _ = new UpdateGuard(this);
 
-        Models.Add(model);
+        if (!Models.Contains(model))
+            Models.Add(model);
+
         Model = model;
+        ModelFilterText = model;
+        RefreshFilteredModels();
     }
 
     [RelayCommand]
@@ -131,6 +149,8 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
             Model = !string.IsNullOrWhiteSpace(selectedModel) && Models.Contains(selectedModel)
                 ? selectedModel
                 : Models.FirstOrDefault();
+            ModelFilterText = Model ?? string.Empty;
+            RefreshFilteredModels();
 
             _settings.Models = [.. Models];
             _settings.Model = Model ?? string.Empty;
@@ -159,6 +179,8 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
             Model = Models.Count > 1 ? Models.First(m => m != model) : string.Empty;
 
         Models.Remove(model);
+        ModelFilterText = Model ?? string.Empty;
+        RefreshFilteredModels();
     }
 
     [RelayCommand]
@@ -234,6 +256,18 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
     {
         var trimmedUrl = baseUrl.Trim();
         return trimmedUrl.TrimEnd('/') + "/v1/models";
+    }
+
+    private void RefreshFilteredModels()
+    {
+        var filterText = ModelFilterText?.Trim() ?? string.Empty;
+        var filteredModels = string.IsNullOrWhiteSpace(filterText)
+            ? Models
+            : Models.Where(model => model.Contains(filterText, StringComparison.OrdinalIgnoreCase));
+
+        FilteredModels.Clear();
+        foreach (var model in filteredModels)
+            FilteredModels.Add(model);
     }
 
     // 辅助类和记录
