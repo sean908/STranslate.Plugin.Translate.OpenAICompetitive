@@ -48,8 +48,8 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
         switch (e.PropertyName)
         {
             case nameof(DisplayName):
-                _settings.DisplayName = string.IsNullOrWhiteSpace(DisplayName) ? "OpenAI Competitive" : DisplayName.Trim();
-                _context.MetaData.Name = _settings.DisplayName;
+                _settings.DisplayName = STranslate.Plugin.Translate.OpenAIExt.Main.NormalizeDisplayName(DisplayName);
+                Main.UpdateDisplayName(_settings.DisplayName);
                 break;
             case nameof(ApiKey):
                 _settings.ApiKey = ApiKey;

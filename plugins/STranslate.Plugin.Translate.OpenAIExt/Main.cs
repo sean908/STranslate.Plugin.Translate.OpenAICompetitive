@@ -1,5 +1,8 @@
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using STranslate.Plugin.Translate.OpenAIExt.View;
 using STranslate.Plugin.Translate.OpenAIExt.ViewModel;
+using System.Collections;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Windows.Controls;
@@ -8,6 +11,8 @@ namespace STranslate.Plugin.Translate.OpenAIExt;
 
 public class Main : LlmTranslatePluginBase
 {
+    public const string DefaultDisplayName = "OpenAI Competitive";
+
     private Control? _settingUi;
     private SettingsViewModel? _viewModel;
     private Settings Settings { get; set; } = null!;
@@ -25,8 +30,24 @@ public class Main : LlmTranslatePluginBase
     public override Control GetSettingUI()
     {
         _viewModel ??= new SettingsViewModel(Context, Settings, this);
+        UpdateDisplayName(Settings.DisplayName);
         _settingUi ??= new SettingsView { DataContext = _viewModel };
         return _settingUi;
+    }
+
+    public static string NormalizeDisplayName(string? displayName)
+    {
+        var normalized = displayName?.Trim();
+        return string.IsNullOrWhiteSpace(normalized) ? DefaultDisplayName : normalized;
+    }
+
+    public void UpdateDisplayName(string? displayName)
+    {
+        var normalized = NormalizeDisplayName(displayName);
+
+        Settings.DisplayName = normalized;
+        Context.MetaData.Name = normalized;
+        TryUpdateHostServiceDisplayName(normalized);
     }
 
     public override string? GetSourceLanguage(LangEnum langEnum) => langEnum switch
@@ -105,7 +126,7 @@ public class Main : LlmTranslatePluginBase
     {
         Context = context;
         Settings = context.LoadSettingStorage<Settings>();
-        Context.MetaData.Name = string.IsNullOrWhiteSpace(Settings.DisplayName) ? "OpenAI Competitive" : Settings.DisplayName.Trim();
+        Context.MetaData.Name = NormalizeDisplayName(Settings.DisplayName);
 
         Settings.Prompts.ForEach(Prompts.Add);
     }
@@ -232,5 +253,65 @@ public class Main : LlmTranslatePluginBase
                 // * 如 ": OPENROUTER PROCESSING"
             }
         },option , cancellationToken: cancellationToken);
+    }
+
+    private bool TryUpdateHostServiceDisplayName(string displayName)
+    {
+        try
+        {
+            var serviceManagerType = AppDomain.CurrentDomain
+                .GetAssemblies()
+                .Select(assembly => assembly.GetType("STranslate.Core.ServiceManager", false))
+                .FirstOrDefault(type => type != null);
+
+            if (serviceManagerType is null)
+            {
+                Context.Logger.LogWarning("ServiceManager type was not found while syncing OpenAI Competitive display name.");
+                return false;
+            }
+
+            var serviceManager = Ioc.Default.GetService(serviceManagerType);
+            if (serviceManager is null)
+            {
+                Context.Logger.LogWarning("ServiceManager instance was not found while syncing OpenAI Competitive display name.");
+                return false;
+            }
+
+            var allServicesProperty = serviceManagerType.GetProperty("AllServices");
+            if (allServicesProperty?.GetValue(serviceManager) is not IEnumerable services)
+            {
+                Context.Logger.LogWarning("ServiceManager.AllServices was not available while syncing OpenAI Competitive display name.");
+                return false;
+            }
+
+            foreach (var service in services)
+            {
+                var serviceType = service.GetType();
+                var plugin = serviceType.GetProperty("Plugin")?.GetValue(service);
+
+                if (!ReferenceEquals(plugin, this))
+                    continue;
+
+                var displayNameProperty = serviceType.GetProperty("DisplayName");
+                if (displayNameProperty is null || !displayNameProperty.CanWrite)
+                {
+                    Context.Logger.LogWarning("Service.DisplayName was not writable while syncing OpenAI Competitive display name.");
+                    return false;
+                }
+
+                if (!string.Equals(displayNameProperty.GetValue(service) as string, displayName, StringComparison.Ordinal))
+                    displayNameProperty.SetValue(service, displayName);
+
+                return true;
+            }
+
+            Context.Logger.LogWarning("Current OpenAI Competitive service was not found while syncing display name.");
+        }
+        catch (Exception ex)
+        {
+            Context.Logger.LogWarning(ex, "Failed to sync OpenAI Competitive display name to host service.");
+        }
+
+        return false;
     }
 }

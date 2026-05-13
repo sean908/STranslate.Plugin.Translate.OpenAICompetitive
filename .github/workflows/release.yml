@@ -1,0 +1,101 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  PLUGIN_PROJECT: plugins/STranslate.Plugin.Translate.OpenAIExt/STranslate.Plugin.Translate.OpenAIExt.csproj
+  PLUGIN_OUTPUT: .artifacts/Release/Plugins/STranslate.Plugin.Translate.OpenAIExt
+  PACKAGE_NAME: STranslate.Plugin.Translate.OpenAICompetitive
+
+jobs:
+  build-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout plugin repository
+        uses: actions/checkout@v4
+
+      - name: Checkout STranslate reference source
+        uses: actions/checkout@v4
+        with:
+          repository: STranslate/STranslate
+          path: upstream/STranslate
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore "${{ env.PLUGIN_PROJECT }}"
+
+      - name: Build
+        run: dotnet build "${{ env.PLUGIN_PROJECT }}" -c Release --no-restore
+
+      - name: Read plugin metadata
+        id: metadata
+        shell: pwsh
+        run: |
+          $metadata = Get-Content "${{ env.PLUGIN_OUTPUT }}\plugin.json" -Raw | ConvertFrom-Json
+          "version=$($metadata.Version)" >> $env:GITHUB_OUTPUT
+          "release_name=$($metadata.Name) v$($metadata.Version)" >> $env:GITHUB_OUTPUT
+
+      - name: Validate plugin package contents
+        shell: pwsh
+        run: |
+          $output = "${{ env.PLUGIN_OUTPUT }}"
+          $required = @(
+            "plugin.json",
+            "STranslate.Plugin.Translate.OpenAIExt.dll",
+            "icon.png",
+            "Languages"
+          )
+
+          foreach ($item in $required) {
+            $path = Join-Path $output $item
+            if (-not (Test-Path $path)) {
+              throw "Required plugin output is missing: $item"
+            }
+          }
+
+          $sdkDll = Join-Path $output "STranslate.Plugin.dll"
+          if (Test-Path $sdkDll) {
+            throw "STranslate.Plugin.dll must not be packaged with third-party plugins."
+          }
+
+      - name: Pack spkg
+        id: pack
+        shell: pwsh
+        run: |
+          $output = "${{ env.PLUGIN_OUTPUT }}"
+          $package = "${{ env.PACKAGE_NAME }}-v${{ steps.metadata.outputs.version }}.spkg"
+          $packagePath = Join-Path $PWD $package
+
+          if (Test-Path $packagePath) {
+            Remove-Item $packagePath -Force
+          }
+
+          Compress-Archive -Path "$output\*" -DestinationPath $packagePath -Force
+          "package=$package" >> $env:GITHUB_OUTPUT
+          "package_path=$packagePath" >> $env:GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ steps.metadata.outputs.release_name }}
+          files: ${{ steps.pack.outputs.package_path }}
+          generate_release_notes: true
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.pack.outputs.package }}
+          path: ${{ steps.pack.outputs.package_path }}
