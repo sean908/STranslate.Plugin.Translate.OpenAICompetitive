@@ -67,7 +67,10 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
                 break;
             case nameof(ModelFilterText):
                 if (!_isUpdating)
+                {
+                    Model = ModelFilterText;
                     _settings.Model = ModelFilterText;
+                }
                 RefreshFilteredModels();
                 break;
             case nameof(Temperature):
@@ -107,6 +110,37 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
         Model = model;
         ModelFilterText = model;
         RefreshFilteredModels();
+    }
+
+    public void CommitModelSelection(string model)
+    {
+        if (string.IsNullOrWhiteSpace(model))
+            return;
+
+        model = model.Trim();
+
+        using var _ = new UpdateGuard(this);
+
+        if (!Models.Contains(model))
+            Models.Add(model);
+
+        Model = model;
+        ModelFilterText = model;
+        RefreshFilteredModels();
+
+        _settings.Model = model;
+        _settings.Models = [.. Models];
+        _context.SaveSettingStorage<Settings>();
+
+        OnPropertyChanged(nameof(Model));
+        OnPropertyChanged(nameof(ModelFilterText));
+    }
+
+    public void ShowAllModels()
+    {
+        FilteredModels.Clear();
+        foreach (var model in Models)
+            FilteredModels.Add(model);
     }
 
     [RelayCommand]

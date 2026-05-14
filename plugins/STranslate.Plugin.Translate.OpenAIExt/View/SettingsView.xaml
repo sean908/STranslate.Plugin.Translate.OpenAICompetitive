@@ -65,11 +65,13 @@
             </ui:SettingsCard.HeaderIcon>
             <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="8">
                 <ComboBox
+                    x:Name="PART_ModelComboBox"
                     MinWidth="200"
                     IsEditable="True"
                     IsTextSearchEnabled="False"
                     ItemsSource="{Binding FilteredModels}"
-                    SelectedItem="{Binding Model, Mode=TwoWay}"
+                    DropDownOpened="OnModelComboBoxDropDownOpened"
+                    SelectionChanged="OnModelComboBoxSelectionChanged"
                     StaysOpenOnEdit="True"
                     Text="{Binding ModelFilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                     <i:Interaction.Triggers>
