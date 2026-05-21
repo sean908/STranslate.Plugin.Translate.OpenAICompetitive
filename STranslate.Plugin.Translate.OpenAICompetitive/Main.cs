@@ -1,13 +1,13 @@
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using STranslate.Plugin.Translate.OpenAIExt.View;
-using STranslate.Plugin.Translate.OpenAIExt.ViewModel;
+using STranslate.Plugin.Translate.OpenAICompetitive.View;
+using STranslate.Plugin.Translate.OpenAICompetitive.ViewModel;
 using System.Collections;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Windows.Controls;
 
-namespace STranslate.Plugin.Translate.OpenAIExt;
+namespace STranslate.Plugin.Translate.OpenAICompetitive;
 
 public class Main : LlmTranslatePluginBase
 {

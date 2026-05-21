@@ -10,8 +10,8 @@ permissions:
   contents: write
 
 env:
-  PLUGIN_PROJECT: plugins/STranslate.Plugin.Translate.OpenAIExt/STranslate.Plugin.Translate.OpenAIExt.csproj
-  PLUGIN_OUTPUT: .artifacts/Release/Plugins/STranslate.Plugin.Translate.OpenAIExt
+  PLUGIN_PROJECT: STranslate.Plugin.Translate.OpenAICompetitive/STranslate.Plugin.Translate.OpenAICompetitive.csproj
+  PLUGIN_OUTPUT: .artifacts/Release/Plugins/STranslate.Plugin.Translate.OpenAICompetitive
   PACKAGE_NAME: STranslate.Plugin.Translate.OpenAICompetitive
 
 jobs:
@@ -53,7 +53,7 @@ jobs:
           $output = "${{ env.PLUGIN_OUTPUT }}"
           $required = @(
             "plugin.json",
-            "STranslate.Plugin.Translate.OpenAIExt.dll",
+            "STranslate.Plugin.Translate.OpenAICompetitive.dll",
             "icon.png",
             "Languages"
           )
@@ -75,7 +75,7 @@ jobs:
         shell: pwsh
         run: |
           $output = "${{ env.PLUGIN_OUTPUT }}"
-          $package = "${{ env.PACKAGE_NAME }}-v${{ steps.metadata.outputs.version }}.spkg"
+          $package = "${{ env.PACKAGE_NAME }}.spkg"
           $packagePath = Join-Path $PWD $package
 
           if (Test-Path $packagePath) {

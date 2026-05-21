@@ -1,4 +1,4 @@
-namespace STranslate.Plugin.Translate.OpenAIExt;
+namespace STranslate.Plugin.Translate.OpenAICompetitive;
 
 public class Settings
 {

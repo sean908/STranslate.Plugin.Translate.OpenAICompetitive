@@ -6,7 +6,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Text.Json.Nodes;
 
-namespace STranslate.Plugin.Translate.OpenAIExt.ViewModel;
+namespace STranslate.Plugin.Translate.OpenAICompetitive.ViewModel;
 
 public partial class SettingsViewModel : ObservableObject, IDisposable
 {
@@ -51,7 +51,7 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
         switch (e.PropertyName)
         {
             case nameof(DisplayName):
-                _settings.DisplayName = STranslate.Plugin.Translate.OpenAIExt.Main.NormalizeDisplayName(DisplayName);
+                _settings.DisplayName = STranslate.Plugin.Translate.OpenAICompetitive.Main.NormalizeDisplayName(DisplayName);
                 Main.UpdateDisplayName(_settings.DisplayName);
                 break;
             case nameof(ApiKey):

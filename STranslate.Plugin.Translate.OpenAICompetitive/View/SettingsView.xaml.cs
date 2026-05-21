@@ -2,9 +2,9 @@ using System;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
-using STranslate.Plugin.Translate.OpenAIExt.ViewModel;
+using STranslate.Plugin.Translate.OpenAICompetitive.ViewModel;
 
-namespace STranslate.Plugin.Translate.OpenAIExt.View;
+namespace STranslate.Plugin.Translate.OpenAICompetitive.View;
 
 public partial class SettingsView
 {

@@ -17,7 +17,7 @@
         <DebugSymbols>true</DebugSymbols>
         <DebugType>portable</DebugType>
         <Optimize>false</Optimize>
-        <OutputPath>..\..\.artifacts\Debug\Plugins\STranslate.Plugin.Translate.OpenAIExt\</OutputPath>
+        <OutputPath>..\.artifacts\Debug\Plugins\STranslate.Plugin.Translate.OpenAICompetitive\</OutputPath>
         <DefineConstants>DEBUG;TRACE</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
@@ -27,7 +27,7 @@
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
         <DebugType>none</DebugType>
         <Optimize>true</Optimize>
-        <OutputPath>..\..\.artifacts\Release\Plugins\STranslate.Plugin.Translate.OpenAIExt\</OutputPath>
+        <OutputPath>..\.artifacts\Release\Plugins\STranslate.Plugin.Translate.OpenAICompetitive\</OutputPath>
         <DefineConstants>TRACE</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
@@ -53,7 +53,7 @@
     <!--    </ItemGroup>-->
 
     <ItemGroup>
-        <ProjectReference Include="..\..\upstream\STranslate\src\STranslate.Plugin\STranslate.Plugin.csproj" Private="false" />
+        <ProjectReference Include="..\upstream\STranslate\src\STranslate.Plugin\STranslate.Plugin.csproj" Private="false" />
     </ItemGroup>
 
 </Project>

@@ -3,8 +3,8 @@
   "Name": "OpenAI Competitive",
   "Description": "Extended OpenAI-compatible plugin for STranslate",
   "Author": "sean908",
-  "Version": "0.3.0",
+  "Version": "0.3.1",
   "Website": "https://github.com/sean908/STranslate.Plugin.Translate.OpenAICompetitive",
-  "ExecuteFileName": "STranslate.Plugin.Translate.OpenAIExt.dll",
+  "ExecuteFileName": "STranslate.Plugin.Translate.OpenAICompetitive.dll",
   "IconPath": "icon.png"
 }
